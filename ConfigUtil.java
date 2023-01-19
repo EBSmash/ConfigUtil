@@ -5,7 +5,9 @@ import github.ebsmash.maroon.MaroonCore;
 import github.ebsmash.maroon.module.Module;
 import github.ebsmash.maroon.module.setting.Setting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.util.JsonException;
 import org.json.JSONObject;
+import org.lwjgl.Sys;
 
 import java.io.*;
 
@@ -73,9 +75,18 @@ public class ConfigUtil {
         }
 
         for (Module m : MaroonCore.moduleManager.getModules()) {
-            assert config != null;
-            JSONObject settings = config.getJSONObject(m.getName());
 
+            JSONObject settings = null;
+
+            try {
+                settings = config.getJSONObject(m.getName());
+            } catch (Exception e) {
+                System.out.println(String.format("Module %s has not been initialized yet", m.getName()));
+            }
+
+            if (settings == null){
+                continue;
+            }
 
             for (Setting setting : m.getSettings()) {
                 String settingName = setting.getName();
@@ -89,15 +100,12 @@ public class ConfigUtil {
                 }
             }
             //avoid nullpointers for things defined on enabled
-            //ik its shit code
             m.setToggled(true);
 
             m.setToggled(settings.getBoolean("toggled"));
             m.setKey(settings.getInt("key"));
 
         }
-
-
     }
 
 
